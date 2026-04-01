@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perplexity Clone</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-top">
+                <div class="nav-item active-group">
+                     <div class="nav-link main-search">
+                        <i class="ph ph-sparkle" style="color: black;"></i> Search
+                     </div>
+                     <div class="nav-link sub-search active">
+                        <i class="ph ph-desktop"></i> Computer
+                     </div>
+                </div>
+                
+                <div class="nav-section">
+                    <a href="#" class="nav-link new-thread" id="new-thread-btn">
+                        <i class="ph ph-plus"></i> New thread
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <a href="#" class="nav-link"><i class="ph ph-clock-counter-clockwise"></i> History</a>
+                    <a href="#" class="nav-link"><i class="ph ph-compass"></i> Discover</a>
+                    <a href="#" class="nav-link"><i class="ph ph-squares-four"></i> Spaces</a>
+                    <a href="#" class="nav-link"><i class="ph ph-trend-up"></i> Finance</a>
+                    <a href="#" class="nav-link"><i class="ph ph-heart"></i> Health</a>
+                    <a href="#" class="nav-link"><i class="ph ph-dots-three"></i> More</a>
+                </div>
+
+                <div class="nav-section recent">
+                    <h3>Recent</h3>
+                    <p>Recent and active threads will appear here.</p>
+                </div>
+            </div>
+
+            <div class="sidebar-bottom">
+                <a href="#" class="nav-link sign-in">
+                    <div class="sign-in-left">
+                        <i class="ph-fill ph-user-circle"></i> Sign In
+                    </div>
+                    <i class="ph ph-caret-right"></i>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="center-container">
+                <h1 class="logo-text">perplexity</h1>
+                
+                <div class="search-box">
+                    <textarea id="chat-input" placeholder="Ask anything..."></textarea>
+                    <div class="search-controls">
+                        <div class="controls-left">
+                            <button class="icon-btn"><i class="ph ph-plus"></i></button>
+                            <button class="pill-btn"><i class="ph ph-desktop"></i> Computer <i class="ph ph-plus" style="font-size: 10px; margin-left: 2px;"></i></button>
+                        </div>
+                        <div class="controls-right">
+                            <button id="clear-btn" class="icon-btn" title="Clear Chat"><i class="ph ph-trash"></i></button>
+                            <button class="text-btn">Model <i class="ph ph-caret-down" style="font-size: 12px"></i></button>
+                            <button class="icon-btn"><i class="ph ph-microphone"></i></button>
+                            <button id="submit-btn" class="submit-btn"><i class="ph ph-waveform"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="chat-messages" class="chat-messages"></div>
+
+                <div class="suggestions-container">
+                    <div class="suggestions-header">
+                        <i class="ph ph-desktop"></i> Try Computer
+                    </div>
+                    
+                    <div class="suggestions-pills">
+                        <button class="suggestion-pill active"><i class="ph ph-eye"></i> Monitor the situation</button>
+                        <button class="suggestion-pill"><i class="ph ph-lightbulb"></i> Help me learn</button>
+                        <button class="suggestion-pill"><i class="ph ph-briefcase"></i> Build a business</button>
+                        <button class="suggestion-pill"><i class="ph ph-code"></i> Create a prot...</button>
+                    </div>
+
+                    <div class="suggestions-list">
+                        <div class="suggestion-item">Track regulatory changes in my industry</div>
+                        <div class="suggestion-item">Monitor a competitor daily for any changes</div>
+                        <div class="suggestion-item">Track my portfolio and alert me to big moves</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const chatInput = document.getElementById('chat-input');
+        const submitBtn = document.getElementById('submit-btn');
+        const chatMessages = document.getElementById('chat-messages');
+        const suggestionsContainer = document.querySelector('.suggestions-container');
+        const logoText = document.querySelector('.logo-text');
+        const clearBtn = document.getElementById('clear-btn');
+        const newThreadBtn = document.getElementById('new-thread-btn');
+
+        // New Thread Action (Reloads page to original state)
+        newThreadBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.reload();
+        });
+
+        // Clear Chat Action
+        clearBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            chatMessages.innerHTML = ''; // clear all messages
+            
+            // Restore original UI state
+            if (suggestionsContainer) suggestionsContainer.style.display = 'block';
+            if (logoText) {
+                logoText.style.fontSize = '47px';
+                logoText.style.marginBottom = '40px';
+                logoText.style.alignSelf = 'center';
+                logoText.style.paddingLeft = '0px';
+            }
+        });
+
+        // Optional: auto-resize textarea
+        chatInput.addEventListener('input', function() {
+            this.style.height = '52px';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            // Hide initial UI elements to make room for chat
+            if (suggestionsContainer) suggestionsContainer.style.display = 'none';
+            if (logoText) {
+                logoText.style.fontSize = '24px';
+                logoText.style.marginBottom = '20px';
+                logoText.style.alignSelf = 'flex-start';
+                logoText.style.paddingLeft = '50px';
+            }
+
+            // Append user message
+            appendMessage('user', message);
+            chatInput.value = '';
+            chatInput.style.height = '52px';
+            
+            // Show loading state
+            const loadingId = appendMessage('bot', 'Thinking...');
+
+            try {
+                const response = await fetch('http://localhost:5000/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    updateMessage(loadingId, data.response);
+                } else {
+                    updateMessage(loadingId, 'Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                updateMessage(loadingId, 'Failed to connect to the backend.');
+            }
+        }
+
+        // Helper to append a message to the UI
+        function appendMessage(role, text) {
+            const msgDiv = document.createElement('div');
+            const id = 'msg-' + Date.now();
+            msgDiv.id = id;
+            msgDiv.className = `message ${role}-message`;
+            
+            if (role === 'user') {
+                msgDiv.innerHTML = `<div class="message-content">${text}</div>`;
+            } else {
+                // simple regex for basic markdown formatting (paragraphs and bold)
+                let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                formattedText = formattedText.replace(/\n/g, '<br>');
+                msgDiv.innerHTML = `
+                    <div class="bot-icon"><i class="ph-fill ph-sparkle"></i></div>
+                    <div class="message-content">${formattedText}</div>
+                `;
+            }
+            
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return id;
+        }
+
+        function updateMessage(id, newText) {
+            const msgDiv = document.getElementById(id);
+            if (msgDiv) {
+                let formattedText = newText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                formattedText = formattedText.replace(/\n/g, '<br>');
+                msgDiv.querySelector('.message-content').innerHTML = formattedText;
+            }
+        }
+
+        submitBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
